@@ -2,7 +2,6 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
-import axios from 'axios'
 import cookies from 'js-cookie'
 
 import { Button, Checkbox, FloatLabel, InputText, Message } from 'primevue'
@@ -11,6 +10,7 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 import { useAuthStore } from '@/stores/auth'
 import setToast from '@/utils/setToast'
+import request from '@/utils/request'
 
 const apiUrl = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -50,16 +50,18 @@ const loginData = ref({
 })
 async function onLogin() {
     try {
-        const url = apiUrl + '/user/login'
-        const resp = await axios.post(url, loginData.value)
-        const body = resp?.data
-        if (body.code == 200) {
-            cookies.set('token', body.data.token, { expires: 31, secure: true, sameSite: 'Lax', path: '/' })
+        const resp = await request({
+            url: '/user/login',
+            method: 'POST',
+            data: loginData.value
+        })
+        if (resp.code == 200) {
+            cookies.set('token', resp.data.token, { expires: 31, secure: true, sameSite: 'Lax', path: '/' })
             authStore.isAuthed = true
-            authStore.token = body.data.token
+            authStore.token = resp.data.token
             router.push('/user')
         } else {
-            setToast('error', '登录失败', body.message)
+            setToast('error', '登录失败', resp.message)
         }
     } catch (err) {
         setToast('error', '登录失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
@@ -76,14 +78,16 @@ const registerData = ref({
 })
 async function onRegister() {
     try {
-        const url = apiUrl + '/user/register'
-        const resp = await axios.post(url, registerData.value)
-        const body = resp?.data
-        if (body.code == 200) {
+        const resp = await request({
+            url: '/user/register',
+            method: 'POST',
+            data: registerData.value
+        })
+        if (resp.code == 200) {
             setToast('success', '注册成功', '使用你的通行证登录吧！')
             mode.value = 0
         } else {
-            setToast('error', '注册失败', body.message)
+            setToast('error', '注册失败', resp.message)
         }
     } catch (err) {
         setToast('error', '注册失败', err.response?.data?.message || '未知错误，请联系负责后端的同学')
@@ -91,22 +95,17 @@ async function onRegister() {
 }
 
 // 如果用户已经存在登录状态，就直接跳到 /user
-onMounted(() => {
-    const token = cookies.get('token')
-    if (token) {
-        axios.get(apiUrl + '/user/Info', {
-            headers: {
-                Authorization: token
-            }
-        }).then(res => {
-            if (res.data.code == 200) {
-                setToast('success', '用户已登录', '欢迎回来，正在跳转至主页')
-                authStore.isAuthed = true
-                authStore.token = token
-                authStore.userInfo = res.data.data
-                router.push('/user')
-            }
-        })
+onMounted(async () => {
+    const resp = await request({
+        url: '/user/Info',
+        method: 'GET'
+    })
+    if (resp.code == 200) {
+        setToast('success', '用户已登录', '欢迎回来，正在跳转至主页')
+        authStore.isAuthed = true
+        authStore.token = cookies.get('token') || ''
+        authStore.userInfo = resp.data
+        router.push('/user')
     }
 })
 </script>
