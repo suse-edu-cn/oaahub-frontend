@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { z } from 'zod'
 import cookies from 'js-cookie'
 
-import { Button, Checkbox, FloatLabel, InputText, Message } from 'primevue'
+import { Button, Checkbox, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
 import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 
@@ -26,20 +26,26 @@ const imgSet = [
 // 登录表单验证
 const initialValues = ref({
     studentid: '',
-    username: '',
     name: '',
+    username: '',
     password: '',
     isAccepted: false
 })
-const resolver = ref(zodResolver(
-    z.object({
-        studentid: z.string().min(1, { message: '请填写学号' }).regex(/^\d+$/, { message: '学号必须为数字' }),
-        username: z.string().min(1, { message: '请填写用户名' }),
-        name: z.string().min(1, { message: '请填写姓名' }),
-        password: z.string().min(1, { message: '请填写密码' }),
-        isAccepted: z.literal(true)
-    })
-))
+
+const loginSchema = z.object({
+    username: z.string().min(1, { message: '请填写用户名' }),
+    password: z.string().min(1, { message: '请填写密码' })
+})
+const registerSchema = z.object({
+    studentid: z.string().min(1, { message: '请填写学号' }).regex(/^\d+$/, { message: '学号必须为数字' }),
+    name: z.string().min(1, { message: '请填写姓名' }),
+    username: z.string().min(1, { message: '请填写用户名' }),
+    password: z.string().min(1, { message: '请填写密码' }),
+    isAccepted: z.literal(true)
+})
+const loginResolver = zodResolver(loginSchema)
+const registerResolver = zodResolver(registerSchema)
+
 // portal 模式，0 为登录，1 为注册
 const mode = ref(0)
 
@@ -49,6 +55,9 @@ const loginData = ref({
     password: ''
 })
 async function onLogin() {
+    if (!loginSchema.safeParse(loginData.value).success) {
+        return
+    }
     try {
         const resp = await request({
             url: '/user/login',
@@ -77,6 +86,9 @@ const registerData = ref({
     role: '会员'
 })
 async function onRegister() {
+    if (!registerSchema.safeParse(registerData.value).success) {
+        return
+    }
     try {
         const resp = await request({
             url: '/user/register',
@@ -113,27 +125,36 @@ onMounted(() => {
         </div>
 
         <!-- 登录 -->
-        <Form v-slot="$form" :resolver="resolver" :initial-values="initialValues" class="right" v-if="mode == 0"
+        <Form v-slot="$form" :resolver="loginResolver" :initial-values="initialValues" class="right" v-if="mode == 0"
             @submit="onLogin">
             <h2>登录青蟹通行证</h2>
+            <br />
 
             <div class="input-box">
                 <FloatLabel variant="on">
-                    <InputText v-model="loginData.username" name="username" size="large" class="input-box" />
+                    <IconField>
+                        <InputIcon class="pi pi-users" />
+                        <InputText v-model="loginData.username" name="username" size="large" class="input-box" />
+                    </IconField>
                     <label for="on_label">用户名</label>
                 </FloatLabel>
-                <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.username.error?.message }}</Message>
+                <Message severity="error" size="small" variant="simple">
+                    <span v-if="$form.username?.invalid">{{ $form.username.error?.message }}</span>&nbsp;
+                </Message>
             </div>
 
             <div class="input-box">
                 <FloatLabel variant="on">
-                    <InputText v-model="loginData.password" name="password" type="password" size="large"
-                        class="input-box" />
+                    <IconField>
+                        <InputIcon class="pi pi-lock" />
+                        <InputText v-model="loginData.password" name="password" type="password" size="large"
+                            class="input-box" />
+                    </IconField>
                     <label for="on_label">密码</label>
                 </FloatLabel>
-                <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.password.error?.message }}</Message>
+                <Message severity="error" size="small" variant="simple">
+                    <span v-if="$form.password?.invalid">{{ $form.password.error?.message }}</span>&nbsp;
+                </Message>
             </div>
 
             <br>
@@ -143,51 +164,68 @@ onMounted(() => {
         </Form>
 
         <!-- 注册 -->
-        <Form v-slot="$form" :resolver="resolver" :initial-values="initialValues" class="right" v-if="mode == 1"
+        <Form v-slot="$form" :resolver="registerResolver" :initial-values="initialValues" class="right" v-if="mode == 1"
             @submit="onRegister">
             <h2>注册青蟹通行证</h2>
+            <br />
 
             <div class="input-box">
                 <FloatLabel variant="on">
-                    <InputText v-model="registerData.studentid" name="studentid" size="large" class="input-box" />
+                    <IconField>
+                        <InputIcon class="pi pi-id-card" />
+                        <InputText v-model="registerData.studentid" name="studentid" size="large" class="input-box" />
+                    </IconField>
                     <label for="on_label">学号</label>
                 </FloatLabel>
-                <Message v-if="$form.studentid?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.studentid.error?.message }}</Message>
+                <Message severity="error" size="small" variant="simple">
+                    <span v-if="$form.studentid?.invalid">{{ $form.studentid.error?.message }}</span>&nbsp;
+                </Message>
             </div>
 
             <div class="input-box">
                 <FloatLabel variant="on">
-                    <InputText v-model="registerData.username" name="username" size="large" class="input-box" />
-                    <label for="on_label">用户名</label>
-                </FloatLabel>
-                <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.username.error?.message }}</Message>
-            </div>
-
-            <div class="input-box">
-                <FloatLabel variant="on">
-                    <InputText v-model="registerData.name" name="name" size="large" class="input-box" />
+                    <IconField>
+                        <InputIcon class="pi pi-user" />
+                        <InputText v-model="registerData.name" name="name" size="large" class="input-box" />
+                    </IconField>
                     <label for="on_label">姓名</label>
                 </FloatLabel>
-                <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.name.error?.message }}</Message>
+                <Message severity="error" size="small" variant="simple">
+                    <span v-if="$form.name?.invalid">{{ $form.name.error?.message }}</span>&nbsp;
+                </Message>
             </div>
 
             <div class="input-box">
                 <FloatLabel variant="on">
-                    <InputText v-model="registerData.password" name="password" type="password" size="large"
-                        class="input-box" />
+                    <IconField>
+                        <InputIcon class="pi pi-users" />
+                        <InputText v-model="registerData.username" name="username" size="large" class="input-box" />
+                    </IconField>
+                    <label for="on_label">用户名</label>
+                </FloatLabel>
+                <Message severity="error" size="small" variant="simple">
+                    <span v-if="$form.username?.invalid">{{ $form.username.error?.message }}</span>&nbsp;
+                </Message>
+            </div>
+
+            <div class="input-box">
+                <FloatLabel variant="on">
+                    <IconField>
+                        <InputIcon class="pi pi-lock" />
+                        <InputText v-model="registerData.password" name="password" type="password" size="large"
+                            class="input-box" />
+                    </IconField>
                     <label for="on_label">密码</label>
                 </FloatLabel>
-                <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.password.error?.message }}</Message>
+                <Message severity="error" size="small" variant="simple">
+                    <span v-if="$form.password?.invalid">{{ $form.password.error?.message }}</span>&nbsp;
+                </Message>
             </div>
             <div class="input-box">
                 <Checkbox input-id="isAccepted" name="isAccepted" binary />
                 <label for="isAccepted">&nbsp;&nbsp;我已阅读并同意<a href="#" target="_blank">《用户协议》</a></label>
             </div>
-            <br>
+            <br /><br />
             <Button type="submit" label="注册" class="input-box" />
 
             <p class="link" @click="mode = 0">已经拥有通行证？前往登录</p>
@@ -219,7 +257,7 @@ main {
         width: 60%;
         flex: 1;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: .75rem;
         justify-content: center;
         align-items: center;
 
