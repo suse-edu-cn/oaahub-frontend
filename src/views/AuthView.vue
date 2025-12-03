@@ -96,7 +96,7 @@ async function onRegister() {
 
 onMounted(() => {
     // 如果因刷新等原因导致 authStore 未初始化，则先 init
-    if (!authStore.isAuthed) {
+    if (!authStore.isReady) {
         initAuthStore()
     }
     if (authStore.isAuthed) {

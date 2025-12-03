@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/auth'
 export async function initAuthStore() {
     const authStore = useAuthStore()
     const token = cookies.get('token')
+
+    // 如果 cookie 里有 token，则尝试获取用户信息
     if (token) {
         authStore.token = token
         try {
@@ -27,4 +29,7 @@ export async function initAuthStore() {
             }
         } catch (e) {}
     }
+
+    // 设置 isReady，此时 authStore 已经初始化完成
+    authStore.isReady = true
 }
