@@ -19,7 +19,7 @@ const router = createRouter({
         {
             path: '/user/edit',
             component: () => import('@/views/UserEditView.vue'),
-            // meta: { requiresAuth: true },
+            meta: { requiresAuth: true },
         },
 
         // 比赛相关
