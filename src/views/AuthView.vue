@@ -66,8 +66,7 @@ async function onLogin() {
         })
         if (resp.code == 200) {
             cookies.set('token', resp.data.token, { expires: 31, secure: true, sameSite: 'Lax', path: '/' })
-            authStore.isAuthed = true
-            authStore.token = resp.data.token
+            await initAuthStore()
             router.push('/user')
         } else {
             setToast('error', '登录失败', resp.message)
@@ -87,8 +86,6 @@ const registerData = ref({
     isAccepted: false
 })
 async function onRegister() {
-    console.log(123);
-
     if (!registerSchema.safeParse(registerData.value).success) {
         return
     }
