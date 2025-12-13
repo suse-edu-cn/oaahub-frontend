@@ -26,7 +26,7 @@ onMounted(async () => {
 
 <template>
     <!-- 如果登录状态正常，就显示包含信息的 banner -->
-    <div class="banner" style="background-color: var(--p-emerald-50);" v-if="authStore.isAuthed">
+    <div class="e-banner" style="background-color: var(--p-emerald-50);" v-if="authStore.isAuthed">
         <img :src="authStore.userInfo.avatar" alt="用户头像" srcset="" />
         <div class="info">
             <div class="title">{{ authStore.userInfo.username }}</div>
@@ -65,12 +65,9 @@ onMounted(async () => {
 </template>
 
 <style lang="less" scoped>
-.banner {
-    display: flex;
-    padding: var(--e-banner-padding);
-    gap: 2rem;
+.e-banner {
     flex-direction: var(--banner-direction);
-    align-items: center;
+    gap: 2rem;
 
     img {
         width: 8rem;
@@ -83,6 +80,7 @@ onMounted(async () => {
 
     .info {
         flex: 1;
+        text-align: var(--banner-info-align);
 
         .title {
             font-size: 2.25rem;
@@ -121,6 +119,7 @@ onMounted(async () => {
     }
 
     --banner-direction: row;
+    --banner-info-align: left;
     --banner-h-margin: 0;
 }
 
@@ -131,8 +130,9 @@ main {
 }
 
 @media screen and (max-width: 800px) {
-    .banner {
+    .e-banner {
         --banner-direction: column;
+        --banner-info-align: center;
         --banner-h-margin: auto;
     }
 }
